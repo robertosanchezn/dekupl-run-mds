@@ -47,6 +47,7 @@ configfile: "config.json"
 # COMMON VARIABLES
 SAMPLES_TSV     = config['samples_tsv'] if 'samples_tsv' in config else ""
 CONDITION_COL   = "condition"
+GEO_ACCESSION_COL = "geo_accession"
 CONDITION_A     = config['diff_analysis']['condition']['A']
 CONDITION_B     = config['diff_analysis']['condition']['B']
 PVALUE_MAX      = config['diff_analysis']['pvalue_threshold']
@@ -152,7 +153,7 @@ elif "samples" in config:
             sys.exit("Missing 'name' for sample " + json.dumps(s))
         elif CONDITION_COL not in s:
             sys.exit("Missing 'condition' for sample " + json.dumps(s))
-        SAMPLES.append({'name': s['name'], 'condition': s[CONDITION_COL]})
+        SAMPLES.append({'name': s['name'], 'condition': s[CONDITION_COL], 'geo_accession': s[GEO_ACCESSION_COL]})
 
 SAMPLE_NAMES    = [i['name'] for i in SAMPLES]
 
@@ -289,7 +290,6 @@ rule compile_mergeTags:
       shell("cd share/mergeTags && make")
       shell("ln -s -f ../share/mergeTags/mergeTags " + BIN_DIR)
 
-
 rule compile_computeNF:
   output: COMPUTE_NF
   input: "share/computeNF/computeNF.c"
@@ -298,7 +298,6 @@ rule compile_computeNF:
       shell("cd share/computeNF && make")
       shell("ln -s -f ../share/computeNF/computeNF " + BIN_DIR)
 
-
 rule compile_TtestFilter:
   input: "share/TtestFilter/TtestFilter.c"
   output: TTEST_FILTER
@@ -306,7 +305,6 @@ rule compile_TtestFilter:
     if not os.path.isfile(BIN_DIR + TTEST_FILTER):
       shell("cd share/TtestFilter && make")
       shell("ln -s -f ../share/TtestFilter/TtestFilter " + BIN_DIR)
-
 
 rule download_kallisto:
   output:
@@ -317,8 +315,6 @@ rule download_kallisto:
       shell("wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_linux-v0.43.0.tar.gz -O {output.kallisto_tarball}")
       shell("tar -xzf {output.kallisto_tarball} -C share")
       shell("ln -s ../share/kallisto_linux-v0.43.0/kallisto " + KALLISTO)
-
-
 
 ###############################################################################
 #
@@ -357,9 +353,9 @@ rule sample_conditions:
   output: SAMPLE_CONDITIONS
   run:
     with open(output[0], "w") as f:
-      f.write("\t".join(["sample",CONDITION_COL]) + "\n")
+      f.write("\t".join(["sample",CONDITION_COL, GEO_ACCESSION_COL]) + "\n")
       for sample in SAMPLES:
-        f.write("\t".join([sample["name"],sample[CONDITION_COL]]) + "\n")
+        f.write("\t".join([sample["name"],sample[CONDITION_COL], sample[GEO_ACCESSION_COL]]) + "\n")
 
 rule compute_normalization_factors:
   input:

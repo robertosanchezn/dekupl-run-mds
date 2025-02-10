@@ -160,7 +160,7 @@ invisible(foreach(i=1:length(lst_files)) %dopar% {
 
             dds <- DESeqDataSetFromMatrix(countData,
                                           colData = colData,
-                                          design = ~ condition)
+                                          design = ~ geo_accession + condition)
 
             NormCount_names = colnames(bigTab)
             rm(bigTab);gc()
